@@ -1,0 +1,46 @@
+# Core deep learning
+torch>=1.12.0
+torchvision>=0.13.0
+
+# Transformers and NLP
+transformers>=4.20.0
+tokenizers>=0.12.0
+datasets>=2.0.0
+sentencepiece>=0.1.97
+
+# Chinese NLP
+thulac>=0.2.1
+jieba>=0.42.1
+
+# Machine learning utilities
+scikit-learn>=1.0.0
+numpy>=1.22.0
+scipy>=1.7.0
+pandas>=1.4.0
+
+# Word embeddings
+gensim>=4.2.0
+
+# Knowledge graph storage
+neo4j>=5.0.0
+
+# Ontology construction
+owlready2>=0.40
+
+# Web crawling
+scrapy>=2.7.0
+
+# Image processing
+Pillow>=9.0.0
+
+# Visualization
+matplotlib>=3.5.0
+networkx>=2.8.0
+
+# Evaluation
+seqeval>=1.2.2
+
+# Utilities
+tqdm>=4.64.0
+pyyaml>=6.0
+loguru>=0.6.0

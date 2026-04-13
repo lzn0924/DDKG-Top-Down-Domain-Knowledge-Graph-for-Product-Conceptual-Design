@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Data files (confidential, not distributed)
+data_files/
+*.jsonl
+*.conll
+*.tsv
+*.csv
+*.sqlite
+*.db
+
+# Trained model weights
+saved_models/
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Logs and outputs
+logs/
+*.log
+
+# Generated ontology/triple files
+*.owl
+*.nt
+*.ttl
+*.rdf
+
+# Annotation working files
+annotation/
+*_review.json
+knowledge_base.json
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Hugging Face cache (large, auto-downloaded)
+.cache/
+
+# Paper PDF (copyright)
+*.pdf
+
+# Local config overrides
+config_local.py
+.env
