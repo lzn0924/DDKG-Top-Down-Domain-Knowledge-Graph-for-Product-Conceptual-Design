@@ -1,10 +1,7 @@
 """
 Central configuration for DDKG (Design Domain Knowledge Graph).
 
-All hyperparameters are sourced from:
-  Li Z et al. (2025). "Top-Down Hierarchical Construction and Application of
-  a Domain Knowledge Graph Based on Multimodal Design Information."
-  Journal of Mechanical Design, 147(3): 031401.
+Centralises all paths, model hyperparameters, and pipeline settings.
 """
 
 import os

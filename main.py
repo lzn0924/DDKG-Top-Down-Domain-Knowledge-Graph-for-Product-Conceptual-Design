@@ -2,12 +2,7 @@
 Main entry point for the DDKG pipeline.
 
 Orchestrates the full top-down hierarchical construction and application
-of the Design Domain Knowledge Graph (DDKG) described in:
-
-  Li Z, Sa G*, Liu Z, Li B, & Tan J. (2025).
-  "Top-Down Hierarchical Construction and Application of a Domain
-   Knowledge Graph Based on Multimodal Design Information."
-  Journal of Mechanical Design, 147(3): 031401.
+of the Design Domain Knowledge Graph (DDKG).
 
 Pipeline stages:
   1. Data acquisition   – web crawl → raw JSONL
