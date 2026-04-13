@@ -1,21 +1,9 @@
 """
 Unstructured data mapping: Text and Image → Knowledge Graph triples.
 
-Implements the Non-Structured Data Mapping Technique (Section 2.2.2):
-  "NLP techniques to map vocabularies, entities, and semantic triples
-   contained in text fields to elements in the knowledge graph."
-  "Image data can also extract semantics through image classification,
-   object recognition techniques and organize them into the graph."
-
-Pipeline for text:
-  raw text → THULAC segmentation → NER (LEBERT+BiLSTM-CRF) →
-  Relation Extraction (rule-based) → RDF triples
-
-Pipeline for images:
-  image → ResNet/EfficientNet classification →
-  object detection → label mapping → RDF triples
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2.2.2.
+Pipeline:
+  text  → THULAC + NER + RE → entity/relation triples
+  image → ResNet50 classification → label mapping → RDF triples
 """
 
 import os

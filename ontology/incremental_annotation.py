@@ -1,16 +1,11 @@
 """
 Incremental annotation mechanism for semi-supervised knowledge base construction.
 
-Implements the four-step process described in Section 2.2.1:
+Four-step process:
   (1) Automatic Extraction – TF-IDF + word embeddings identify candidate terms
   (2) Batched Expert Review  – candidates batched and sent to domain experts
   (3) Expert Annotation      – experts annotate relevance; provide modifications
-  (4) Integration & Validation – knowledge base updated iteratively
-
-"By utilizing a batched annotation approach, we significantly reduce the
-one-time workload for experts, making the process more manageable."
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2.2.1.
+  (4) Knowledge Base Update  – accepted terms merged into ontology KB
 """
 
 import json
@@ -113,8 +108,7 @@ class IncrementalAnnotationEngine:
       4. Integrate accepted/modified terms into knowledge base
       5. Re-train TF-IDF/embedding models with updated KB
 
-    This design reduces manual annotation burden to ~11.22% of total terms,
-    matching Table 5 of the paper.
+    This design significantly reduces the manual annotation workload.
     """
 
     def __init__(

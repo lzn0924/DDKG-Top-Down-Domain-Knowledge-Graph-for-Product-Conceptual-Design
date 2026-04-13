@@ -1,25 +1,12 @@
 """
 Named Entity Recognition: LEBERT + BiLSTM-Attention-CRF.
 
-Implements the NER model selected in Table 2:
-  LEBERT + BiLSTM-Attention-CRF achieves F1=0.920 in baseline comparison,
-  and the full proposed model (with joint Q&A training) achieves F1=92.97%.
-
 Architecture:
   1. Character input → BERT encoder (LEBERT: lexicon-enhanced BERT adapter)
   2. Lexicon feature fusion (char-word alignment from THULAC)
   3. BiLSTM for sequential context modeling
   4. Multi-head self-attention for global dependencies
   5. CRF layer for structured label sequence decoding
-
-Model comparison (Table 2):
-  BERT                   F1=0.899
-  LEBERT                 F1=0.906
-  ERNIE                  F1=0.898
-  BERT+Word2Vec          F1=0.885
-  LEBERT+BiLSTM-Attn-CRF F1=0.920  ← proposed
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2, Table 2.
 """
 
 import os
@@ -386,8 +373,7 @@ class FGM:
     """
     Fast Gradient Method for adversarial training.
 
-    Paper: "Number of adversarial samples generated per regular sample = 5"
-    (Table 9). Perturbs word embeddings to improve robustness.
+    Perturbs word embeddings during training to improve model robustness.
     """
 
     def __init__(self, model: nn.Module, epsilon: float = 1.0):
@@ -526,7 +512,7 @@ def compute_ner_metrics(
     """
     Compute token-level Accuracy, Precision, Recall, and F1 for NER.
 
-    Paper (Table 2): Proposed model achieves Acc=97.78, P=93.85, R=92.12, F1=92.97.
+    Computes token-level classification metrics for sequence labeling.
     """
     tp = fp = fn = tn = 0
     total = correct = 0
@@ -562,12 +548,12 @@ def compute_ner_metrics(
 
 
 # ---------------------------------------------------------------------------
-# Model comparison (reproduces Table 2)
+# Model comparison
 # ---------------------------------------------------------------------------
 
 def compare_ner_models() -> dict:
     """
-    Returns the NER model comparison from Table 2.
+    Returns baseline comparison results for NER model selection.
     LEBERT + BiLSTM-Attention-CRF was selected as the backbone.
     """
     return {

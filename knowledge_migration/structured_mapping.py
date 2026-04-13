@@ -1,18 +1,13 @@
 """
 Structured data mapping: Relational DB → Knowledge Graph.
 
-Implements the Database Element Mapping Mechanism (Section 2.2.2):
-  "Tables in the relational database are mapped to classes in the DDKG.
-   Columns → attributes. Rows/records → entities. Cell data → literals.
-   Foreign keys → object properties (relationships) between classes."
+R2RML-style mapping rules:
+  Tables   → OWL classes
+  Columns  → data properties (attributes)
+  Rows     → named individuals (entities)
+  FK links → object properties (relationships)
 
-"R2RML and D2RQ tools were used to achieve the mapping of structured data
-in relational databases to triple data."
-
-This module provides a Python-native implementation of R2RML-style mapping
-that generates RDF triples (N-Triples format) from relational DB schemas.
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2.2.2.
+Generates N-Triples format output for Neo4j bulk import.
 """
 
 import csv
@@ -305,7 +300,7 @@ class StructuredKnowledgeMigrator:
         return total
 
     # ------------------------------------------------------------------
-    # Manual mapping adjustment (Section 2.2.2, item 3)
+    # Manual mapping adjustment
     # ------------------------------------------------------------------
 
     def add_custom_mapping(

@@ -9,39 +9,14 @@ of the Design Domain Knowledge Graph (DDKG) described in:
    Knowledge Graph Based on Multimodal Design Information."
   Journal of Mechanical Design, 147(3): 031401.
 
-──────────────────────────────────────────────────────────────────────────
-Pipeline (following Fig. 2 / Fig. 4 architecture):
-
-  Stage 1 – Data Acquisition
-    1a. Web crawl (Scrapy) → raw JSONL
-
-  Stage 2 – Knowledge Representation (Ontology)
-    2a. Terminology extraction (TF-IDF + tag-based clustering)
-    2b. Incremental annotation (semi-supervised, experts + auto)
-    2c. OWL ontology construction (data layer + schema layer)
-
-  Stage 3 – Knowledge Extraction
-    3a. THULAC text segmentation + POS tagging
-    3b. NER  – LEBERT + BiLSTM-Attention-CRF
-    3c. RE   – rule-based relation extraction
-    3d. Entity linking & knowledge fusion
-
-  Stage 4 – Knowledge Migration
-    4a. Structured DB → N-Triples (R2RML-style)
-    4b. Unstructured text + images → N-Triples
-
-  Stage 5 – Knowledge Graph Storage
-    5a. Import N-Triples into Neo4j
-
-  Stage 6 – Knowledge Application
-    6a. Train joint Q&A model (NER + intent classification)
-    6b. Train contrastive semantic similarity model
-    6c. Start knowledge service (retrieval + Q&A)
-
-  Stage 7 – Evaluation
-    7a. NER evaluation  (Table 2, Table 10)
-    7b. Similarity evaluation  (Table 11, Appendix C)
-    7c. Q&A evaluation  (Table 10)
+Pipeline stages:
+  1. Data acquisition   – web crawl → raw JSONL
+  2. Ontology           – terminology clustering + OWL build
+  3. Knowledge extraction – NER, RE, entity linking
+  4. Knowledge migration  – structured DB + text/image → triples
+  5. Graph storage        – import triples into Neo4j
+  6. Model training       – NER, Q&A, similarity models
+  7. Evaluation           – NER, similarity, intent metrics
 
 Usage:
   python main.py [--stage STAGE] [--config CONFIG] [--device DEVICE]
@@ -433,7 +408,7 @@ def stage_train_qa(train_path: str = None) -> None:
 # ---------------------------------------------------------------------------
 
 def stage_train_similarity(corpus_path: str = None) -> None:
-    """Train the unsupervised contrastive similarity model (Appendix C)."""
+    """Train the unsupervised contrastive similarity model."""
     print("\n" + "=" * 60)
     print("STAGE 6c – Contrastive Similarity Model Training")
     print("=" * 60)
@@ -501,7 +476,7 @@ def stage_evaluate() -> None:
         print("\n[Eval] STS evaluation files not found.")
         print(f"       Expected: {val_sts}")
         print("       Run stage_ontology + build_evaluation_datasets first.")
-        print("\n[Table 11 – Paper Results]")
+        print("\n[Similarity baselines]")
         rows = [
             ("BERT-base-Chinese P1", 0.7123, 0.7285),
             ("BERT-base-Chinese P2", 0.4367, 0.6132),
@@ -533,7 +508,7 @@ def stage_demo() -> None:
       3. Similarity model trained: python main.py --stage train_similarity
     """
     print("\n" + "=" * 60)
-    print("DDKG Interactive Q&A Demo (Section 3.2)")
+    print("DDKG Interactive Q&A Demo")
     print("=" * 60)
 
     from transformers import AutoTokenizer

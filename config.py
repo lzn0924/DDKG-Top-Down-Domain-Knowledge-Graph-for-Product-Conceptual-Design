@@ -26,7 +26,7 @@ BERT_BASE_CHINESE = "bert-base-chinese"
 BERT_WWM_EXT = "hfl/chinese-bert-wwm-ext"  # BERT-WWM used in contrastive model
 
 # ---------------------------------------------------------------------------
-# Data split ratios (Section 2, Technical Architecture)
+# Data split ratios
 # ---------------------------------------------------------------------------
 
 TRAIN_RATIO = 0.70
@@ -34,14 +34,13 @@ TEST_RATIO = 0.20
 VAL_RATIO = 0.10
 
 # ---------------------------------------------------------------------------
-# Text processing (Table 1 – THULAC selected)
+# Text processing
 # ---------------------------------------------------------------------------
 
 TEXT_PROCESSOR = "thulac"  # Options: jieba | thulac | ltp | nlpir
 
 # ---------------------------------------------------------------------------
-# NER model: LEBERT + BiLSTM-Attention-CRF (Table 2)
-# Paper results: Acc=97.78, P=93.85, R=92.12, F1=92.97
+# NER model: LEBERT + BiLSTM-Attention-CRF
 # ---------------------------------------------------------------------------
 
 NER_CONFIG = {
@@ -50,14 +49,14 @@ NER_CONFIG = {
     "bilstm_hidden": 256,          # BiLSTM hidden units (per direction)
     "num_lstm_layers": 2,
     "attention_heads": 8,
-    "dropout": 0.5,                # Table 9
-    "learning_rate": 4e-5,         # Table 9
-    "num_epochs": 50,              # Table 9
-    "batch_size": 16,              # Table 9
+    "dropout": 0.5,
+    "learning_rate": 4e-5,
+    "num_epochs": 50,
+    "batch_size": 16,
     "max_seq_len": 128,
-    "num_adversarial_per_sample": 5,           # Table 9
-    "adversarial_loss_weight_intent": 0.25,    # Table 9
-    "task_loss_weight_ner": 0.75,              # Table 9
+    "num_adversarial_per_sample": 5,
+    "adversarial_loss_weight_intent": 0.25,
+    "task_loss_weight_ner": 0.75,
     "crf": True,
     "lexicon_path": os.path.join(DATA_DIR, "lexicon.txt"),
 }
@@ -76,7 +75,7 @@ NER_LABELS = [
 ]
 
 # ---------------------------------------------------------------------------
-# Query intent labels (Table 8 – 24 categories)
+# Query intent labels (24 categories)
 # ---------------------------------------------------------------------------
 
 INTENT_LABELS = [
@@ -109,8 +108,7 @@ INTENT_LABELS = [
 NUM_INTENT_CLASSES = len(INTENT_LABELS)  # 24
 
 # ---------------------------------------------------------------------------
-# Relation extraction (Table 3 – rule-based selected)
-# Paper results: P=0.926, R=0.914, F1=0.920
+# Relation extraction
 # ---------------------------------------------------------------------------
 
 RELATION_TYPES = [
@@ -133,18 +131,17 @@ RELATION_TYPES = [
 ]
 
 # ---------------------------------------------------------------------------
-# Contrastive learning – semantic similarity (Appendix C)
-# Paper results: val ρ=0.8161, test ρ=0.8455
+# Contrastive learning – semantic similarity
 # ---------------------------------------------------------------------------
 
 SIMILARITY_CONFIG = {
     "bert_model": BERT_WWM_EXT,
-    "dropout": 0.3,               # Table 15
-    "learning_rate": 1e-5,        # Table 15
-    "num_epochs": 3,              # Table 15
-    "batch_size": 16,             # Table 15
-    "max_seq_len": 128,           # Table 15
-    "temperature": 0.05,          # Table 15 – τ (temperature factor)
+    "dropout": 0.3,
+    "learning_rate": 1e-5,
+    "num_epochs": 3,
+    "batch_size": 16,
+    "max_seq_len": 128,
+    "temperature": 0.05,          # NT-Xent temperature τ
     "generic_samples": 5000,      # Sentences from Chinese-SNLI + Chinese-STS-B
     "domain_samples": 500,        # Home design domain corpus
     "val_samples": 120,           # STS-B format
@@ -158,14 +155,13 @@ SIMILARITY_CONFIG = {
 }
 
 # ---------------------------------------------------------------------------
-# Tag-based clustering (Table 5)
-# Results: Precision=0.821, Recall=0.794, Manual%=11.22%, F1=0.872
+# Tag-based clustering
 # ---------------------------------------------------------------------------
 
 CLUSTERING_CONFIG = {
     "tfidf_min_df": 2,
     "tfidf_max_df": 0.95,
-    "tfidf_threshold": 0.15,      # Sensitivity analysis reference (Fig. 8)
+    "tfidf_threshold": 0.15,
     "word2vec_dim": 100,
     "word2vec_window": 5,
     "word2vec_min_count": 2,
@@ -195,7 +191,7 @@ ONTOLOGY_CONFIG = {
     "format": "rdfxml",
 }
 
-# Top-level concept classes (Fig. 4 taxonomy)
+# Top-level concept classes
 ONTOLOGY_CLASSES = [
     "ProductConceptualDesignKnowledge",
     "UserPreferenceKnowledge",

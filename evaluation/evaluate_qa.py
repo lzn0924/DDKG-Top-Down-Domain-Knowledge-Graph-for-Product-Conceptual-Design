@@ -1,16 +1,10 @@
 """
 Joint Q&A model evaluation script.
 
-Reproduces Table 10 results (proposed method):
-  NER task:    Acc=97.78%, P=93.85%, R=92.12%, F1=92.97%
-  Intent task: Acc=85.32%, WP=87.37%, WR=86.12%, WF1=86.73%
+Evaluation metrics:
+  NER:    Accuracy (token-level), Precision, Recall, F1
+  Intent: Accuracy, Weighted Precision, Weighted Recall, Weighted F1
 
-Evaluation metrics (Section 3.2.2.1):
-  NER:    Accuracy (token), Precision, Recall, F1 (Equations 1–4)
-  Intent: Accuracy, Weighted Precision (WP), Weighted Recall (WR),
-          Weighted F1 (WF1) by category
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 3.2.2 and Table 10.
 """
 
 import json
@@ -31,7 +25,7 @@ from knowledge_application.qa_model import JointQAModel, QADataset, QATrainer
 
 
 # ---------------------------------------------------------------------------
-# Intent classification metrics (Table 10 – WP, WR, WF1)
+# Intent classification metrics
 # ---------------------------------------------------------------------------
 
 def compute_intent_metrics(
@@ -42,7 +36,7 @@ def compute_intent_metrics(
     """
     Compute accuracy and category-weighted P/R/F1 for intent classification.
 
-    Matches Table 10 columns: Acc, WP, WR, WF1.
+    Computes accuracy and category-weighted P/R/F1.
     """
     label_names = label_names or INTENT_LABELS
     acc = accuracy_score(labels, predictions)
@@ -74,7 +68,7 @@ def compute_per_intent_metrics(
 
 
 # ---------------------------------------------------------------------------
-# NER metrics (Table 10 – Acc, P, R, F1)
+# NER metrics
 # ---------------------------------------------------------------------------
 
 def compute_ner_metrics(
@@ -84,7 +78,7 @@ def compute_ner_metrics(
 ) -> Dict[str, float]:
     """
     Compute token-level NER metrics (Equations 1–4).
-    Matches Table 10 columns: Acc, P, R, F1.
+    Computes token-level Acc, P, R, F1.
     """
     tp = fp = fn = 0
     total = correct = 0
@@ -161,7 +155,7 @@ def evaluate_qa_model(
     print(f"  Weighted Recall: {metrics.get('intent_weighted_rec', 0)*100:.2f}%")
     print(f"  Weighted F1:     {metrics.get('intent_weighted_f1', 0)*100:.2f}%")
     print()
-    print("[Paper Target (Table 10)]:")
+    print("[Target]:")
     print("  NER:    Acc=97.78%, P=93.85%, R=92.12%, F1=92.97%")
     print("  Intent: Acc=85.32%, WP=87.37%, WR=86.12%, WF1=86.73%")
 
@@ -174,11 +168,11 @@ def evaluate_qa_model(
 
 
 # ---------------------------------------------------------------------------
-# Model comparison table (Table 10)
+# Model comparison table
 # ---------------------------------------------------------------------------
 
 def print_qa_comparison_table() -> None:
-    """Print the Q&A model comparison from Table 10 of the paper."""
+    """Print the Q&A model comparison."""
     data = {
         "BERT + CRF": {
             "ner_acc": 96.50, "ner_p": 86.46, "ner_r": 82.88, "ner_f1": 83.61,
@@ -201,7 +195,7 @@ def print_qa_comparison_table() -> None:
     def fmt(v):
         return f"{v:.2f}" if v is not None else "  —  "
 
-    print("\n[Table 10] Q&A Model Comparison (NER + Intent Classification)")
+    print("\n[Q&A Model Comparison (NER + Intent Classification)]")
     print("-" * 100)
     header = (
         f"{'Model':<30} "

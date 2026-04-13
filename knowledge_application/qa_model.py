@@ -1,23 +1,11 @@
 """
 Joint extraction model for knowledge graph Q&A.
 
-Implements the encoder-decoder architecture described in Section 3.2 and Fig. 15:
+Encoder-decoder architecture:
   - Shared BERT encoder
-  - Decoder 1: CRF for design knowledge subject (entity) extraction
-  - Decoder 2: Multi-scale attention for query intent classification (24 classes)
-  - Adversarial training (FGM) with 5 adversarial samples per regular sample
-
-Hyperparameters (Table 9):
-  Dropout=0.5, LR=4e-5, Epochs=50, Batch=16,
-  Adversarial samples per regular sample=5,
-  Adversarial loss weight (intent)=0.25,
-  Task loss weight (NER)=0.75
-
-Results (Table 10):
-  NER:    Acc=97.78, P=93.85, R=92.12, F1=92.97
-  Intent: Acc=85.32, WP=87.37, WR=86.12, WF1=86.73
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 3.2 and Fig. 15.
+  - Decoder 1: CRF for entity (subject) extraction
+  - Decoder 2: Multi-scale attention for query intent classification
+  - Adversarial training (FGM) for robustness
 """
 
 import os
@@ -121,7 +109,7 @@ class JointQAModel(nn.Module):
       Decoder 1 (CRF):                  Design knowledge subject extraction (NER)
       Decoder 2 (MultiScaleAttention):  Query intent classification (24 classes)
 
-    Architecture corresponds to Fig. 15 in the paper.
+    Shared encoder with two task-specific decoders.
     """
 
     def __init__(self, config: Optional[Dict] = None):
@@ -285,8 +273,7 @@ class QADataset(Dataset):
 
 class FGMAdversarialTrainer:
     """
-    Fast Gradient Method adversarial training as described in Table 9:
-    "Number of adversarial samples generated per regular sample = 5"
+    Fast Gradient Method adversarial training.
 
     Perturbs word embedding gradients to generate virtual adversarial examples,
     improving model robustness to input variations.

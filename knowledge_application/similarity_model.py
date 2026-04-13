@@ -1,28 +1,17 @@
 """
-Unsupervised contrastive learning model for semantic similarity (Appendix C).
+Unsupervised contrastive learning model for semantic similarity.
 
-Implements a SimCSE-style model with domain knowledge fusion:
+SimCSE-style approach:
   - Backbone: BERT-WWM (hfl/chinese-bert-wwm-ext)
-  - Positive pairs: same sentence passed through encoder twice with different dropout masks
-  - In-batch negatives: all other sentences in the same batch
-  - Contrastive loss (NT-Xent) with temperature τ = 0.05
-  - Domain fusion: mix 5000 generic (Chinese-SNLI + STS-B) + 500 domain samples
+  - Positive pairs: same sentence, two different dropout masks
+  - In-batch negatives: all other sentences in the batch
+  - NT-Xent loss with temperature τ
 
-Pooling strategies evaluated (P1–P4, Appendix C):
-  P1: CLS vector of last encoder layer
-  P2: BERT NSP pooler vector
-  P3: Mean of all vectors in last layer
-  P4: Mean of all vectors in first + last layers  ← best single-model baseline
-
-Results (Table 11):
-  BERT-base-Chinese P4:   val=0.7509, test=0.7683
-  BERT-WWM-ext P4:        val=0.7012, test=0.7285
-  Proposed (contrastive): val=0.8161, test=0.8455
-
-Hyperparameters (Table 15):
-  Dropout=0.3, LR=1e-5, Epochs=3, Batch=16, MaxLen=128, τ=0.05
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Appendix C.
+Pooling strategies (P1–P4):
+  P1: CLS token (last layer)
+  P2: NSP pooler output
+  P3: Mean pooling (last layer)
+  P4: Mean pooling (first + last layers)
 """
 
 import os
@@ -49,7 +38,7 @@ def pool_output(
     strategy: str = "P4",
 ) -> torch.Tensor:
     """
-    Apply one of the four pooling strategies evaluated in Appendix C.
+    Apply one of the four pooling strategies (P1–P4).
 
     Args:
         bert_output:    HuggingFace BaseModelOutput with last_hidden_state,
@@ -108,7 +97,7 @@ def contrastive_loss(
     Args:
         embeddings_a: Anchor sentence embeddings.
         embeddings_b: Positive pair embeddings.
-        temperature:  Temperature τ (default 0.05, Table 15).
+        temperature:  Temperature τ (default 0.05).
 
     Returns:
         Scalar loss.
@@ -143,10 +132,10 @@ class ContrastiveSimilarityModel(nn.Module):
     """
     Unsupervised contrastive learning model for domain-specific semantic similarity.
 
-    Domain knowledge fusion strategy (Appendix C):
-      - Train on 5000 generic + 500 home design domain sentences
+    Domain knowledge fusion:
+      - Train on generic + domain sentences combined
       - Dropout augmentation generates positive pairs automatically
-      - Temperature τ = 0.05 for sharp contrastive objective
+      - Temperature τ = 0.05 for contrastive objective
     """
 
     def __init__(self, config: Optional[Dict] = None):
@@ -262,8 +251,7 @@ class STSDataset(Dataset):
     """
     Dataset for evaluation on STS-B format pairs.
 
-    Format (Appendix C):
-      120 validation pairs + 120 test pairs
+    Format (STS-B style):
       Each: (sentence1, sentence2, similarity_score ∈ [0, 5])
     """
 
@@ -313,8 +301,7 @@ class SimilarityTrainer:
     """
     Training and evaluation for the contrastive similarity model.
 
-    Ablation: also evaluates P1–P4 pooling strategies and
-    BERT-base vs BERT-WWM backbones (reproducing Table 11).
+    Supports ablation across P1–P4 pooling strategies and different BERT backbones.
     """
 
     def __init__(
@@ -385,8 +372,7 @@ class SimilarityTrainer:
         """
         Compute Spearman's rank correlation on STS pairs.
 
-        This is the primary evaluation metric from Appendix C:
-        Proposed model achieves ρ=0.8161 (val) / 0.8455 (test).
+        Primary evaluation metric: Spearman's ρ between predicted and gold scores.
         """
         self.model.eval()
         all_preds, all_gold = [], []
@@ -438,7 +424,7 @@ class SimilarityTrainer:
 
 
 # ---------------------------------------------------------------------------
-# Ablation: pooling strategy comparison (Table 11)
+# Ablation: pooling strategy comparison
 # ---------------------------------------------------------------------------
 
 def ablation_pooling_strategies(
@@ -449,7 +435,7 @@ def ablation_pooling_strategies(
 ) -> Dict[str, Dict[str, float]]:
     """
     Evaluate all four pooling strategies on the same BERT backbone.
-    Reproduces the baseline rows of Table 11.
+    Evaluates P1–P4 strategies on the given backbone.
 
     Args:
         model_name:  HuggingFace model identifier.

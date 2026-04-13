@@ -4,11 +4,8 @@ Data preprocessing module.
 Implements:
   1. Text cleaning (remove HTML, special characters, normalize whitespace)
   2. Dataset segmentation: train (70%) / test (20%) / val (10%)
-     – Paper reference: "Data segmentation into training (70%), test (20%),
-       and validation (10%) sets."
   3. Corpus statistics
 
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2, Technical Architecture.
 """
 
 import json
@@ -197,7 +194,7 @@ def save_ner_data(
 
 
 # ---------------------------------------------------------------------------
-# STS-B style similarity data utilities (for contrastive learning, Appendix C)
+# STS-B style similarity data utilities
 # ---------------------------------------------------------------------------
 
 def load_similarity_data(file_path: str) -> List[Dict[str, Any]]:

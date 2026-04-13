@@ -1,14 +1,11 @@
 """
 OWL ontology construction for the product conceptual design domain.
 
-Implements the bi-level architecture (Section 2.1.2):
+Bi-level architecture:
   - Data layer:   fundamental concepts and taxonomy (semantic network)
   - Schema layer: architectural knowledge with OWL/RDF constraints and rules
 
 The ontology is Protégé-compatible (exported as RDF/XML .owl file).
-Top-level taxonomy derived from Fig. 4 and Fig. 7 (home design ontology).
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2.1.2.
 """
 
 import os
@@ -200,7 +197,7 @@ class DDKGOntologyBuilder:
     """
     Constructs the Product Conceptual Design Domain Knowledge Graph ontology.
 
-    Taxonomy (Fig. 4 / Fig. 7 / Fig. 13):
+    Taxonomy:
       Thing
       └── ProductConceptualDesignKnowledge
           ├── UserPreferenceKnowledge
@@ -221,7 +218,7 @@ class DDKGOntologyBuilder:
           ├── DesignEvaluationKnowledge
           └── ProductionProcessKnowledge
 
-    Relation types (Table 6 in paper):
+    Relation types:
       mappingScheme (reversible), comparison (reversible),
       dependency, composition, attribute, usedIn, hasStyle, ...
     """
@@ -278,7 +275,7 @@ class DDKGOntologyBuilder:
             label="Design Method Knowledge",
         )
 
-        # ── Scheme conception knowledge (Fig. 13 relations)
+        # ── Scheme conception knowledge
         self._writer.add_class(
             "SchemeConceptionKnowledge",
             parent="ProductConceptualDesignKnowledge",
@@ -301,7 +298,7 @@ class DDKGOntologyBuilder:
             label="Production Process Knowledge",
         )
 
-        # Geo-entities (for customer location mapping, Table 7)
+        # Geo-entities (for customer location mapping)
         self._writer.add_class("Customer", parent=None, label="Customer")
         self._writer.add_class("Province", parent=None, label="Province")
         self._writer.add_class("City", parent=None, label="City")
@@ -310,7 +307,7 @@ class DDKGOntologyBuilder:
     def _define_object_properties(self) -> None:
         """Define object properties with domain/range constraints (schema layer)."""
 
-        # ── Scheme conception relations (Fig. 13 / Table 6)
+        # ── Scheme conception relations
         self._writer.add_object_property(
             "mappingScheme",
             domain="SchemeConceptionKnowledge",
@@ -385,7 +382,7 @@ class DDKGOntologyBuilder:
             is_symmetric=True,
         )
 
-        # ── Geo / business relations (Table 7)
+        # ── Geo / business relations
         self._writer.add_object_property(
             "locatedInProvince",
             domain="Customer",

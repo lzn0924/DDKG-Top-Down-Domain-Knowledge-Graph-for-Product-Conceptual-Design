@@ -1,17 +1,11 @@
 """
 Tag-based clustering for domain terminology extraction.
 
-Implements the hybrid semi-supervised approach described in Section 2.2.1:
-  1. Expert preset seed tags (e.g., "living room decoration")
-  2. Tag expansion via synonyms, hypernyms, and similar concepts from the ontology
-  3. TF-IDF for candidate term extraction from corpus
+Hybrid semi-supervised pipeline:
+  1. Expert preset seed tags
+  2. Tag expansion via synonyms, hypernyms, and ontology relations
+  3. TF-IDF for candidate term scoring
   4. Word2Vec for semantic similarity-based clustering
-  5. Sensitivity analysis on key parameters (Fig. 8)
-
-Performance (Table 5):
-  Precision = 0.821, Recall = 0.794, Manual % = 11.22%, F1 = 0.872
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2.2.1.
 """
 
 import os
@@ -77,8 +71,6 @@ class TagExpander:
     def build_default_expander() -> "TagExpander":
         """
         Default expander with home-design domain seed relations.
-        These represent the ontology relations built during the top-down
-        construction phase (Fig. 7).
         """
         synonyms = {
             "客厅装修": ["客厅设计", "起居室装潢", "living room design"],
@@ -380,7 +372,7 @@ class TagBasedClusteringPipeline:
 
 
 # ---------------------------------------------------------------------------
-# Sensitivity analysis (Fig. 8)
+# Sensitivity analysis
 # ---------------------------------------------------------------------------
 
 def sensitivity_analysis(
@@ -390,8 +382,7 @@ def sensitivity_analysis(
     param_grid: Optional[Dict] = None,
 ) -> List[Dict]:
     """
-    Vary key parameters and record the number of clustered tags to reproduce
-    the sensitivity analysis in Fig. 8:
+    Vary key parameters and record the number of clustered tags:
       - Number of preset tags (initial seed count)
       - TF-IDF threshold
       - Lexicon coverage (Word2Vec similarity threshold)
@@ -447,7 +438,7 @@ def sensitivity_analysis(
 
 
 # ---------------------------------------------------------------------------
-# Evaluation helpers (Table 5)
+# Evaluation helpers
 # ---------------------------------------------------------------------------
 
 def evaluate_clustering(

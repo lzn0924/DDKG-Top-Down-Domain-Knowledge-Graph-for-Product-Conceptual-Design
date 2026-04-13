@@ -1,16 +1,14 @@
 """
-Knowledge service and management system (Section 3.2.3 and Fig. 16/17).
+Knowledge service layer for the DDKG.
 
-Provides the three core functional modes described in Section 3.2.3:
+Core functional modes:
   1. Information retrieval   – search DDKG by keyword or Cypher
-  2. Knowledge recommendation – suggest related entities from subgraph
-  3. Exploratory analysis    – drill-down layer-by-layer navigation
+  2. Knowledge recommendation – suggest related entities from graph neighborhood
+  3. Exploratory analysis    – drill-down subgraph navigation
 
-Also implements the full Q&A pipeline (Section 3.2.1 / Fig. 14):
+Q&A pipeline:
   user query → entity extraction + intent classification →
   entity linking → Cypher query generation → DDKG retrieval → answer
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 3.2.3.
 """
 
 from typing import Any, Dict, List, Optional, Tuple
@@ -23,7 +21,7 @@ from knowledge_graph.neo4j_manager import Neo4jManager
 
 
 # ---------------------------------------------------------------------------
-# Cypher query templates (Fig. 14 pipeline)
+# Cypher query templates
 # ---------------------------------------------------------------------------
 
 CYPHER_TEMPLATES: Dict[str, str] = {
@@ -74,7 +72,7 @@ CYPHER_TEMPLATES: Dict[str, str] = {
 
 class KnowledgeQAService:
     """
-    Q&A pipeline based on the top-down hierarchical DDKG (Fig. 14).
+    Q&A pipeline for the DDKG.
 
     Step 1: Extract design knowledge subjects (entities) and query intent
             from user question via the joint QA model.
@@ -214,12 +212,12 @@ class KnowledgeQAService:
 
 
 # ---------------------------------------------------------------------------
-# Knowledge retrieval service (Fig. 16)
+# Knowledge retrieval service
 # ---------------------------------------------------------------------------
 
 class KnowledgeRetrievalService:
     """
-    Main functional interface of the knowledge service system (Fig. 16).
+    Main functional interface for knowledge retrieval and recommendation.
 
     Features:
       - Entity search with attribute display
@@ -257,8 +255,7 @@ class KnowledgeRetrievalService:
         """
         Retrieve an entity and its associated knowledge entities.
 
-        "By analyzing the associated entities of the knowledge entity, the system
-        can provide users with domain knowledge extensions." (Section 3.2.3)
+        Retrieve entity plus all associated entities within 2 hops.
         """
         if self.neo4j is None:
             return {"entity": entity_name, "associations": []}
@@ -307,11 +304,8 @@ class SemanticSimilarityService:
     """
     Semantic similarity calculation for knowledge retrieval ranking.
 
-    "BERT-WWM is employed to calculate semantic similarity,
-    enhancing the relevance of search results." (Section 2, Step 6)
-
-    Uses the trained contrastive model (Appendix C) to encode queries
-    and candidate documents, then ranks by cosine similarity.
+    Encodes queries and candidate documents with the contrastive model
+    and ranks results by cosine similarity.
     """
 
     def __init__(

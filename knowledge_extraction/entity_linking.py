@@ -1,19 +1,11 @@
 """
 Entity linking and knowledge fusion.
 
-Implements Section 2 (Technical Architecture, Step 4):
-  "Entity linking addresses ambiguities through word sense disambiguation
-   and coreference resolution."
-  "Knowledge fusion is achieved through structure transformation and
-   knowledge alignment."
-
 Pipeline:
-  1. Candidate generation  – find KB entities matching the mention
-  2. Word sense disambiguation – select correct entity from candidates
-  3. Coreference resolution – link pronoun/ellipsis mentions
-  4. Knowledge alignment    – merge duplicate entities across sources
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2, Step 4.
+  1. Candidate generation      – find KB entities matching the mention
+  2. Word sense disambiguation  – select correct entity from candidates
+  3. Coreference resolution     – link pronoun/ellipsis mentions
+  4. Knowledge alignment        – merge duplicate entities across sources
 """
 
 import re

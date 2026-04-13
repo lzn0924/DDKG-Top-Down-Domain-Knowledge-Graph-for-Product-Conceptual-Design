@@ -1,19 +1,12 @@
 """
 Rule-based relation extraction for the design domain knowledge graph.
 
-Selected method from Table 3 (highest performance):
-  Rule-based: P=0.926, R=0.914, F1=0.920
-  (vs. SVM-based F1=0.778, BERT-based F1=0.838)
+Applies regular-expression patterns to extract (head, relation, tail)
+triples from Chinese design domain text.
 
-"Rule-based methods were selected due to their high precision and domain
-expertise in capturing specific relationships within the home furnishing
-design domain."
-
-Example extraction (Table 3):
+Example:
   "Stainless steel is used for sink in modern kitchen design."
-  → (stainless_steel, usedIn, sink/modern_kitchen_design)
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2 (Technical Architecture, Step 3).
+  → (stainless_steel, usedIn, sink)
 """
 
 import re
@@ -200,8 +193,7 @@ class RuleBasedRelationExtractor:
     Applies domain-specific patterns to extract (head, relation, tail) triples
     from text, optionally constrained by NER entity spans.
 
-    Performance (Table 3):
-      Precision=0.926, Recall=0.914, F1=0.920
+    Applies domain-specific patterns to extract (head, relation, tail) triples.
     """
 
     def __init__(
@@ -319,7 +311,7 @@ class RuleBasedRelationExtractor:
 
 
 # ---------------------------------------------------------------------------
-# Evaluation (Table 3)
+# Evaluation
 # ---------------------------------------------------------------------------
 
 def evaluate_relation_extractor(
@@ -349,7 +341,7 @@ def evaluate_relation_extractor(
 
 
 def compare_re_methods() -> dict:
-    """Returns the relation extraction comparison from Table 3."""
+    """Returns baseline comparison results for relation extraction method selection."""
     return {
         "SVM-based":  {"precision": 0.785, "recall": 0.770, "f1": 0.778,
                        "example": "Stainless steel used in kitchen."},

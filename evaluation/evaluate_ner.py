@@ -1,16 +1,11 @@
 """
-NER evaluation script.
+NER evaluation: token-level and span-level metrics.
 
-Reproduces Table 2 (model comparison) and Table 10 (proposed model results):
-  Proposed model: Acc=97.78%, P=93.85%, R=92.12%, F1=92.97%
-
-Metrics (Section 3.2.2.1 / Equations 1–4):
+Metrics:
   Acc = (TP + TN) / (P + N)
   P   = TP / (TP + FP)
   R   = TP / (TP + FN)
   F1  = 2PR / (P + R)
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 3.2.2.
 """
 
 import json
@@ -44,7 +39,7 @@ def compute_metrics_token_level(
     """
     Compute Accuracy, Precision, Recall, F1 at the token level.
 
-    Matches Equations 1–4 in Section 3.2.2.1:
+    Token-level counts:
       TP: correctly predicted non-O labels
       FP: incorrectly predicted non-O labels
       FN: non-O labels missed by the model
@@ -199,7 +194,7 @@ def evaluate_ner_model(
     print(f"  Recall:    {metrics['recall']*100:.2f}%")
     print(f"  F1:        {metrics['f1']*100:.2f}%")
     print()
-    print("[Paper Target (Table 10)]: Acc=97.78, P=93.85, R=92.12, F1=92.97")
+    print("[Target]: Acc=97.78, P=93.85, R=92.12, F1=92.97")
 
     if output_path:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -210,13 +205,13 @@ def evaluate_ner_model(
 
 
 # ---------------------------------------------------------------------------
-# Model comparison (Table 2)
+# Model comparison
 # ---------------------------------------------------------------------------
 
 def print_model_comparison_table() -> None:
-    """Print the NER model comparison from Table 2 of the paper."""
+    """Print the NER model comparison."""
     table = compare_ner_models()
-    print("\n[Table 2] NER Model Comparison")
+    print("\n[NER Model Comparison]")
     print(f"{'Model':<35} {'P':>8} {'R':>8} {'F1':>8}")
     print("-" * 63)
     for model_name, scores in table.items():

@@ -1,20 +1,12 @@
 """
 Neo4j graph database interface for the DDKG.
 
-Implements Section 2 (Technical Architecture, Step 5):
-  "Extracted knowledge is stored in a Neo4j graph database and
-   full-text index databases."
-  "The system supports both Cypher and text-based queries for
-   flexible information retrieval."
-
 Provides:
   - Entity CRUD operations
   - Relation creation
   - Cypher-based search and retrieval
   - Full-text index management
   - N-Triples bulk import
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2, Step 5.
 """
 
 import os
@@ -264,7 +256,7 @@ class Neo4jManager:
         """
         Retrieve a subgraph rooted at the given entity up to `depth` hops.
 
-        Used for exploratory analysis (Fig. 17) and knowledge recommendation.
+        Used for exploratory analysis and knowledge recommendation.
         """
         cypher = (
             "MATCH path = (e {name: $name})-[*1..$depth]-(n) "

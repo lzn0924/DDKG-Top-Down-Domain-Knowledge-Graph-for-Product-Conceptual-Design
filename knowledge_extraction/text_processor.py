@@ -1,15 +1,9 @@
 """
-Chinese text processing with THULAC (selected model from Table 1).
+Chinese text processing using THULAC.
 
-Wraps THULAC for:
+Provides:
   - Word segmentation (tokenisation)
   - Part-of-speech (POS) tagging
-
-THULAC was selected over Jieba, NLPIR, and LTP because it achieves the
-highest precision and recall for domain-specific Chinese text (Table 1):
-  Precision=0.935, Recall=0.928, F1=0.932, Time=0.180s
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Section 2 (Technical Architecture, Step 3).
 """
 
 import os
@@ -44,7 +38,7 @@ class ChineseTextProcessor:
     def _load_backend(self) -> str:
         import thulac
         self._model = thulac.thulac(seg_only=self.seg_only, T2S=self.use_t2s)
-        print("[TextProcessor] THULAC loaded (Table 1: F1=0.932).")
+        print("[TextProcessor] THULAC loaded.")
         return "thulac"
 
     # ------------------------------------------------------------------
@@ -155,12 +149,12 @@ class ChineseTextProcessor:
 
 
 # ---------------------------------------------------------------------------
-# Comparison helper (reproduces Table 1)
+# Tool comparison
 # ---------------------------------------------------------------------------
 
 def compare_tools_performance() -> dict:
     """
-    Returns the performance comparison of text processing tools from Table 1.
+    Returns performance comparison of Chinese text processing tools.
     THULAC was selected based on these metrics.
     """
     return {

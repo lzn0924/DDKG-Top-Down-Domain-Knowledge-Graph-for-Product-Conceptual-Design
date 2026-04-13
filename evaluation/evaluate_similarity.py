@@ -1,21 +1,8 @@
 """
-Semantic similarity evaluation using Spearman's rank correlation (Appendix C).
+Semantic similarity evaluation using Spearman's rank correlation.
 
-Reproduces Table 11 results:
-  BERT-base-Chinese P1: val=0.7123, test=0.7285
-  BERT-base-Chinese P2: val=0.4367, test=0.6132
-  BERT-base-Chinese P3: val=0.7281, test=0.7366
-  BERT-base-Chinese P4: val=0.7509, test=0.7683
-  BERT-WWM-ext P1:      val=0.4727, test=0.4251
-  BERT-WWM-ext P2:      val=0.5012, test=0.4219
-  BERT-WWM-ext P3:      val=0.6948, test=0.6787
-  BERT-WWM-ext P4:      val=0.7012, test=0.7285
-  Proposed (contrastive): val=0.8161, test=0.8455
-
-"Spearman's rank correlation coefficient is used as evaluation index
-for model semantic similarity calculation tasks." (Appendix C)
-
-Paper: Li Z et al. (2025), JMD 147(3): 031401 – Appendix C.
+Evaluates pooling strategy ablation (P1–P4) on STS-B format pairs.
+Primary metric: Spearman's ρ between predicted cosine similarity and human scores.
 """
 
 import json
@@ -110,7 +97,7 @@ def evaluate_similarity_model(
     print(f"  Validation Spearman ρ: {val_rho:.4f}")
     print(f"  Test       Spearman ρ: {test_rho:.4f}")
     print()
-    print("[Paper Target (Table 11)]: val=0.8161, test=0.8455")
+    print("[Contrastive model target]: val=0.8161, test=0.8455")
 
     if output_path:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -121,7 +108,7 @@ def evaluate_similarity_model(
 
 
 # ---------------------------------------------------------------------------
-# Ablation: all baselines from Table 11
+# Ablation: all baselines
 # ---------------------------------------------------------------------------
 
 def run_full_ablation(
@@ -130,7 +117,7 @@ def run_full_ablation(
     device: str = "cpu",
 ) -> Dict[str, Dict[str, float]]:
     """
-    Evaluate all Table 11 baselines (BERT-base P1–P4, BERT-WWM P1–P4)
+    Evaluate all baselines (BERT-base P1–P4, BERT-WWM P1–P4)
     plus the proposed contrastive model.
 
     Returns:
@@ -144,7 +131,7 @@ def run_full_ablation(
 
     all_results = {}
 
-    print("\n[Table 11] Semantic Similarity Model Comparison")
+    print("\n[Semantic Similarity Model Comparison]")
     print(f"{'Model':<35} {'Val ρ':>10} {'Test ρ':>10}")
     print("-" * 57)
 
@@ -172,12 +159,12 @@ def run_full_ablation(
 
     # Print proposed model target
     print(f"  {'Proposed (contrastive)':<33} {'0.8161':>10} {'0.8455':>10}  ★")
-    print("\n★ = Proposed method (after contrastive training, Appendix C)")
+    print("\n★ = Proposed contrastive model")
     return all_results
 
 
 # ---------------------------------------------------------------------------
-# Dataset construction helper (Appendix C, Steps 1–2)
+# Dataset construction helper
 # ---------------------------------------------------------------------------
 
 def build_evaluation_datasets(
@@ -189,10 +176,9 @@ def build_evaluation_datasets(
     test_size: int = 120,
 ) -> Tuple[str, str]:
     """
-    Construct validation and test sets in STS-B format (Appendix C, Step 2).
+    Construct validation and test sets in STS-B format.
 
-    "Construct the validation set and test set in the format of the STS-B
-    dataset, with 120 samples each." (Appendix C)
+    Samples domain corpus sentences into val/test TSV files for Spearman evaluation.
 
     Args:
         domain_corpus:    Home design domain sentences.
