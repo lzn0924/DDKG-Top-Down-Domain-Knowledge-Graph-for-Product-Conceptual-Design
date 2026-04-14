@@ -209,3 +209,19 @@ ONTOLOGY_CLASSES = [
     "Province",
     "City",
 ]
+
+# ---------------------------------------------------------------------------
+# LLM – AutoDL-deployed Qwen (OpenAI-compatible API)
+# ---------------------------------------------------------------------------
+# Set AUTODL_LLM_URL to your AutoDL public endpoint, e.g.
+#   https://region-3.autodl.pro:12345
+# Or use SSH port-forwarding and keep the default localhost:8000.
+
+LLM_CONFIG = {
+    "base_url": os.environ.get("AUTODL_LLM_URL", "http://localhost:8000"),
+    "model":    os.environ.get("AUTODL_LLM_MODEL", "Qwen/Qwen2.5-7B-Instruct"),
+    "api_key":  os.environ.get("AUTODL_API_KEY", "EMPTY"),
+    "timeout":  60,
+    "temperature": 0.3,
+    "max_tokens":  2048,
+}

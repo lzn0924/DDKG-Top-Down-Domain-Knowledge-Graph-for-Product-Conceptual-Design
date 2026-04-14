@@ -1,180 +1,171 @@
 """
-LLM-augmented Q&A service with Graph RAG.
+LLM-enhanced QA for the DDKG.
 
-Combines:
-  1. GraphRAGRetriever  – pulls relevant subgraph context from Neo4j
-  2. QwenClient         – sends context + query to AutoDL-deployed Qwen LLM
-  3. Conversation memory – multi-turn dialogue with rolling history window
+Unlike the rule-based KnowledgeQAService, this service delegates
+natural-language understanding to the Qwen LLM, enabling it to handle
+free-form questions without fixed keyword patterns or intent label sets.
 
-Unlike the keyword-intent pipeline in knowledge_service.py, this service
-handles arbitrary free-form questions and is not limited to predefined intents.
+Pipeline:
+  user question
+    → LLM extracts entities + intent keywords  (no regex / no fixed labels)
+    → graph retrieval for each entity           (Neo4j)
+    → LLM synthesises a fluent answer           (context-grounded generation)
 """
 
+import json
 from typing import Any, Dict, List, Optional, Tuple
 
-from knowledge_application.llm_client  import QwenClient, LLM_CONFIG, _SYSTEM_PROMPT
-from knowledge_application.graph_rag   import GraphRAGRetriever
-from knowledge_graph.neo4j_manager     import Neo4jManager
-
-# ---------------------------------------------------------------------------
-# Prompt templates
-# ---------------------------------------------------------------------------
-
-_SYSTEM_WITH_CONTEXT = """{base_system}
-
-以下是从产品设计领域知识图谱中检索到的背景知识，请优先基于此回答：
-
-{context}
-"""
-
-_SYSTEM_NO_CONTEXT = """{base_system}
-
-当前知识图谱中未检索到与问题直接相关的条目，请基于你的通用知识回答，
-并提示用户该信息未经知识图谱验证。
-"""
+from config import LLM_CONFIG
+from knowledge_graph.neo4j_manager import Neo4jManager
+from knowledge_application.llm_client import QwenClient
 
 
 # ---------------------------------------------------------------------------
-# Main service
+# Prompts
+# ---------------------------------------------------------------------------
+
+_SYS_EXTRACT = (
+    "你是一个产品概念设计领域的实体提取器。"
+    "从用户的问题中提取所有实体（产品、材料、风格、功能、品牌、颜色、空间等）以及意图关键词。"
+    "严格以如下 JSON 格式输出，不要有任何额外内容：\n"
+    '{"entities": ["实体1", "实体2"], "intent_keywords": ["关键词1", "关键词2"]}'
+)
+
+_SYS_ANSWER = (
+    "你是一个产品概念设计领域的知识图谱问答助手。"
+    "以下是从知识图谱中检索到的相关事实，请根据这些事实用简洁专业的中文回答用户问题。"
+    "若事实不足以支撑完整回答，请如实说明，不要编造内容。"
+)
+
+
+# ---------------------------------------------------------------------------
+# Service
 # ---------------------------------------------------------------------------
 
 class LLMQAService:
     """
-    Multi-turn Q&A service backed by Graph RAG + Qwen LLM.
+    LLM-augmented QA: free-form question → graph retrieval → answer.
 
-    Each session maintains a rolling conversation history so follow-up
-    questions can reference previous context.
-
-    Example:
-        service = LLMQAService(neo4j_manager=mgr)
-        answer  = service.ask("北欧风格客厅适合用什么材质的沙发？")
-        answer2 = service.ask("价格一般在什么范围？")  # follow-up
+    Compared with KnowledgeQAService:
+      - No fixed intent label set or keyword patterns required
+      - Handles multi-entity and compositional questions
+      - Answers grounded in real graph facts (no hallucination risk from LLM alone)
     """
 
     def __init__(
         self,
         neo4j_manager: Optional[Neo4jManager] = None,
-        llm_config:    Optional[Dict]          = None,
-        max_history:   int                     = 6,
-        max_hops:      int                     = 2,
+        llm_client:    Optional[QwenClient]   = None,
+        config:        Optional[Dict]          = None,
     ):
-        self.llm     = QwenClient(llm_config or LLM_CONFIG)
-        self.rag     = GraphRAGRetriever(neo4j_manager, max_hops=max_hops) \
-                       if neo4j_manager else None
-        self.history: List[Dict[str, str]] = []
-        self.max_history = max_history      # rolling window (user+assistant pairs)
+        self.graph = neo4j_manager
+        self.llm   = llm_client or QwenClient(config or LLM_CONFIG)
 
     # ------------------------------------------------------------------
-    # Public API
+    # Main entry
     # ------------------------------------------------------------------
 
-    def ask(self, query: str, use_graph: bool = True) -> Dict[str, Any]:
+    def answer(self, question: str) -> Dict[str, Any]:
         """
-        Answer a free-form question.
+        Answer a free-form design-domain question.
 
-        Args:
-            query:     User question (Chinese or English).
-            use_graph: Whether to perform Graph RAG retrieval.
-
-        Returns:
+        Returns::
             {
-              "answer":   str,
-              "entities": List[str],   # grounded entities
-              "context_used": bool,    # whether graph context was injected
+                "question": str,
+                "entities": List[str],
+                "facts":    List[Dict],
+                "answer":   str,
             }
         """
-        context_text = ""
-        entities: List[str] = []
-
-        # 1. Graph RAG retrieval
-        if use_graph and self.rag:
-            context_text, entities = self.rag.retrieve_context(query)
-
-        # 2. Build system prompt
-        if context_text:
-            system = _SYSTEM_WITH_CONTEXT.format(
-                base_system=_SYSTEM_PROMPT,
-                context=context_text,
-            )
-        else:
-            system = _SYSTEM_NO_CONTEXT.format(base_system=_SYSTEM_PROMPT)
-
-        # 3. Compose messages: system + rolling history + new query
-        messages = [{"role": "system", "content": system}]
-        messages.extend(self._get_history_window())
-        messages.append({"role": "user", "content": query})
-
-        # 4. LLM call
-        answer = self.llm.chat(messages)
-
-        # 5. Update history
-        self._push_history(query, answer)
-
+        entities, intent_kws = self._extract_entities(question)
+        facts  = self._retrieve_facts(entities, intent_kws)
+        answer = self._synthesize(question, facts)
         return {
-            "answer":       answer,
-            "entities":     entities,
-            "context_used": bool(context_text),
+            "question": question,
+            "entities": entities,
+            "facts":    facts,
+            "answer":   answer,
         }
 
-    def reset(self) -> None:
-        """Clear conversation history."""
-        self.history.clear()
-
-    def get_history(self) -> List[Dict[str, str]]:
-        return list(self.history)
-
     # ------------------------------------------------------------------
-    # History management
+    # Step 1 – free-form NLU via LLM
     # ------------------------------------------------------------------
 
-    def _push_history(self, user_text: str, assistant_text: str) -> None:
-        self.history.append({"role": "user",      "content": user_text})
-        self.history.append({"role": "assistant", "content": assistant_text})
-        # Keep rolling window: 2 messages per turn × max_history turns
-        cap = self.max_history * 2
-        if len(self.history) > cap:
-            self.history = self.history[-cap:]
-
-    def _get_history_window(self) -> List[Dict[str, str]]:
-        return list(self.history)
-
-
-# ---------------------------------------------------------------------------
-# CLI demo
-# ---------------------------------------------------------------------------
-
-def run_llm_qa_demo(neo4j_manager: Optional[Neo4jManager] = None) -> None:
-    """Interactive command-line demo for the LLM Q&A service."""
-    service = LLMQAService(neo4j_manager=neo4j_manager)
-
-    if not service.llm.health_check():
-        print("[LLM QA] Warning: LLM endpoint unreachable. Check AUTODL_LLM_URL.")
-        print("         Set env var or update LLM_CONFIG in llm_client.py.\n")
-
-    print("=" * 60)
-    print("DDKG × Qwen  Graph-RAG 问答系统")
-    print("输入 'quit' 退出  |  输入 'reset' 清空对话记录")
-    print("=" * 60)
-
-    while True:
+    def _extract_entities(self, question: str) -> Tuple[List[str], List[str]]:
+        msgs = [
+            {"role": "system", "content": _SYS_EXTRACT},
+            {"role": "user",   "content": question},
+        ]
+        raw = self.llm.chat(msgs, temperature=0.0, max_tokens=256)
         try:
-            user_input = input("\n你: ").strip()
-        except (EOFError, KeyboardInterrupt):
-            break
+            data = json.loads(raw)
+            return data.get("entities", []), data.get("intent_keywords", [])
+        except json.JSONDecodeError:
+            return [question], []
 
-        if not user_input:
-            continue
-        if user_input.lower() == "quit":
-            break
-        if user_input.lower() == "reset":
-            service.reset()
-            print("[系统] 对话记录已清空。")
-            continue
+    # ------------------------------------------------------------------
+    # Step 2 – graph retrieval
+    # ------------------------------------------------------------------
 
-        result = service.ask(user_input)
+    def _retrieve_facts(
+        self,
+        entities:    List[str],
+        intent_kws:  List[str],
+        per_limit:   int = 8,
+    ) -> List[Dict]:
+        if self.graph is None:
+            raise RuntimeError(
+                "Neo4j not connected. Pass a Neo4jManager instance to LLMQAService."
+            )
 
-        print(f"\n助手: {result['answer']}")
-        if result["entities"]:
-            print(f"[图谱命中实体: {', '.join(result['entities'])}]")
-        if not result["context_used"]:
-            print("[提示: 本回答未使用知识图谱，仅供参考]")
+        facts: List[Dict] = []
+        seen:  set         = set()
+
+        for ent in entities:
+            node = self.graph.get_entity(ent)
+            if node:
+                _add(facts, seen, "entity", node, str(node))
+
+            for rel in self.graph.get_relations(ent, direction="both")[:per_limit]:
+                _add(facts, seen, "relation", rel, str(rel))
+
+            for kw in intent_kws:
+                for hit in self.graph.search_entity(f"{ent} {kw}", limit=3):
+                    _add(facts, seen, "search_hit", hit, str(hit))
+
+        return facts
+
+    # ------------------------------------------------------------------
+    # Step 3 – answer synthesis
+    # ------------------------------------------------------------------
+
+    def _synthesize(self, question: str, facts: List[Dict]) -> str:
+        context = _format_context(facts)
+        msgs = [
+            {"role": "system", "content": _SYS_ANSWER},
+            {"role": "user",
+             "content": f"知识图谱事实：\n{context}\n\n用户问题：{question}"},
+        ]
+        return self.llm.chat(msgs, temperature=0.4, max_tokens=1024)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _add(
+    facts: List[Dict],
+    seen:  set,
+    kind:  str,
+    data:  Any,
+    key:   str,
+) -> None:
+    if key not in seen:
+        facts.append({"type": kind, "data": data})
+        seen.add(key)
+
+
+def _format_context(facts: List[Dict]) -> str:
+    labels = {"entity": "实体", "relation": "关系", "search_hit": "搜索结果"}
+    lines  = [f"[{labels.get(f['type'], f['type'])}] {f['data']}" for f in facts]
+    return "\n".join(lines) if lines else "（未检索到相关事实）"
