@@ -570,6 +570,7 @@ def parse_args() -> argparse.Namespace:
             "train_similarity",
             "evaluate",
             "demo",
+            "llm_demo",
         ],
         help=(
             "Pipeline stage to run. "
@@ -658,6 +659,15 @@ def main() -> None:
 
     if stage == "demo":
         stage_demo()
+
+    if stage == "llm_demo":
+        from knowledge_application.llm_qa_service import run_llm_qa_demo
+        neo4j = None
+        try:
+            neo4j = Neo4jManager()
+        except Exception as e:
+            print(f"[Main] Neo4j not connected ({e}). Running without graph context.")
+        run_llm_qa_demo(neo4j_manager=neo4j)
 
     print("\n[DDKG] Done.")
 
